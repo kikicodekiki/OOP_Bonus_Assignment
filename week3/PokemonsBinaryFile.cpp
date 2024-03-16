@@ -217,7 +217,7 @@ void textify(const PokemonHandler &ph, const char* fileName) {
     int n = size(ph);
     for (int i = 0; i < n; ++i) {
         Pokemon p = at(ph, i);
-        file << "Name: " << p.name << ", Type: ";
+        file << p.name << " ";
         switch ((int)p.type) {
             case NORMAL:
                 file << "NORMAL";
@@ -241,7 +241,7 @@ void textify(const PokemonHandler &ph, const char* fileName) {
                 file << "FLYING";
                 break;
         }
-        file << ", Power: " << p.power << std::endl;
+        file << " " << p.power << std::endl;
     }
 
     file.close();
@@ -282,6 +282,9 @@ void untextify(const PokemonHandler &ph, const char* fileName) {
             std::cerr << "Invalid type encountered while reading from file." << std::endl;
             return;
         }
+
+        ifs.get();
+        ifs.ignore();
 
         ifs >> myPokemon.power;
         insert(ph, myPokemon);
