@@ -62,7 +62,7 @@ Pokemon createPokemon () {
 
         std::cin >> myPokemon.power;
     } while (myPokemon.power < GlobalConstants::POWER_MIN_SIZE ||
-              myPokemon.power > GlobalConstants::POWER_MAX_SIZE );
+             myPokemon.power > GlobalConstants::POWER_MAX_SIZE );
 
 
     return myPokemon;
@@ -101,14 +101,22 @@ PokemonHandler newPokemonHandler (const char* fileName) {
     if(!file.is_open()) {
         return {};
     }
-    int fileSize = getFileSize(file);
 
     PokemonHandler myPokemonHandler;
 
-    myPokemonHandler.fileName = fileName;
+    size_t length = strlen(fileName) + 1;
+
+    myPokemonHandler.fileName = new char [length];
+    strcpy((char*)myPokemonHandler.fileName, fileName);
 
     return myPokemonHandler;
 }
+
+void deletePokemonHandler(PokemonHandler& handler) {
+    delete[] handler.fileName;
+    handler.fileName = nullptr;
+}
+
 
 int size(const PokemonHandler &ph) {
 
@@ -143,22 +151,22 @@ Pokemon at(const PokemonHandler& ph, int i) {
 }
 
 void swap (const PokemonHandler& ph, int i, int j) {
-    std::ofstream ofs (ph.fileName, std::ios::binary);
+    std::fstream file (ph.fileName, std::ios::binary | std::ios::in |std::ios::out);
 
-    if(!ofs.is_open() || notValid(ph, i) || notValid(ph,j) || i==j ) {
+    if(!file.is_open() || notValid(ph, i) || notValid(ph,j) || i==j ) {
         return;
     }
 
     Pokemon iPokemon = at(ph, i);
     Pokemon jPokemon = at(ph, j);
 
-    ofs.seekp(i*sizeof(Pokemon), std::ios::beg);
-    ofs.write((const char*)& jPokemon, sizeof(Pokemon));
+    file.seekp(i*sizeof(Pokemon), std::ios::beg);
+    file.write((const char*)& jPokemon, sizeof(Pokemon));
 
-    ofs.seekp(j*sizeof(Pokemon), std::ios::beg);
-    ofs.write((const char*)& iPokemon, sizeof(Pokemon));
+    file.seekp(j*sizeof(Pokemon), std::ios::beg);
+    file.write((const char*)& iPokemon, sizeof(Pokemon));
 
-    ofs.close();
+    file.close();
 
 }
 
@@ -200,50 +208,86 @@ void insert(const PokemonHandler &ph, const Pokemon &pokemon) {
 }
 
 void textify(const PokemonHandler &ph, const char* fileName) {
-
-    std::ifstream ifs (ph.fileName, std::ios::binary | std::ios::in);
-    if(!ifs.is_open())
+    std::ofstream file(fileName);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file for writing." << std::endl;
         return;
-
-    std::ofstream ofs(fileName);
-    if(ofs.is_open())
-        return;
-
-    while(!ifs.eof()) {
-
-        Pokemon myPokemon = readPokemonFromBinaryFile(ifs);
-        writePokemonInBinaryFile(ofs,myPokemon);
-        std::cout << std::endl;
     }
 
-    ifs.close();
-    ofs.close();
+    int n = size(ph);
+    for (int i = 0; i < n; ++i) {
+        Pokemon p = at(ph, i);
+        file << "Name: " << p.name << ", Type: ";
+        switch ((int)p.type) {
+            case NORMAL:
+                file << "NORMAL";
+                break;
+            case FIRE:
+                file << "FIRE";
+                break;
+            case WATER:
+                file << "WATER";
+                break;
+            case GRASS:
+                file << "GRASS";
+                break;
+            case ELECTRIC:
+                file << "ELECTRIC";
+                break;
+            case GHOST:
+                file << "GHOST";
+                break;
+            case FLYING:
+                file << "FLYING";
+                break;
+        }
+        file << ", Power: " << p.power << std::endl;
+    }
+
+    file.close();
 }
 
-void untextify(const PokemonHandler &ph, const char* fileName) {
 
+void untextify(const PokemonHandler &ph, const char* fileName) {
     std::ifstream ifs(fileName);
     if (!ifs.is_open()) {
-        return;
-    }
-
-    std::ofstream ofs(ph.fileName, std::ios::binary | std::ios::trunc);
-    if (!ofs.is_open()) {
-        ifs.close();
+        std::cerr << "Error opening file for reading." << std::endl;
         return;
     }
 
     while (!ifs.eof()) {
-        Pokemon myPokemon = readPokemonFromBinaryFile(ifs);
-        if(!ifs.eof()){
-            break;
+
+        Pokemon myPokemon;
+        ifs >> myPokemon.name;
+        ifs.get();
+        ifs.ignore();
+        char typeStr[GlobalConstants::TYPE_MAX_LENGHT];
+        ifs >> typeStr;
+
+        if (strcmp(typeStr, "NORMAL") == 0) {
+            myPokemon.type = NORMAL;
+        } else if (strcmp(typeStr, "FIRE") == 0) {
+            myPokemon.type = FIRE;
+        } else if (strcmp(typeStr, "WATER") == 0) {
+            myPokemon.type = WATER;
+        } else if (strcmp(typeStr, "GRASS") == 0) {
+            myPokemon.type = GRASS;
+        } else if (strcmp(typeStr, "ELECTRIC") == 0) {
+            myPokemon.type = ELECTRIC;
+        } else if (strcmp(typeStr, "GHOST") == 0) {
+            myPokemon.type = GHOST;
+        } else if (strcmp(typeStr, "FLYING") == 0) {
+            myPokemon.type = FLYING;
+        } else {
+            std::cerr << "Invalid type encountered while reading from file." << std::endl;
+            return;
         }
-        writePokemonInBinaryFile(ofs, myPokemon);
+
+        ifs >> myPokemon.power;
+        insert(ph, myPokemon);
     }
 
     ifs.close();
-    ofs.close();
-
 }
 
 
@@ -261,5 +305,7 @@ int main() {
     textify(handler, "pokemon_data.txt");
     untextify(handler, "pokemon_data.txt");
 
+
+    deletePokemonHandler(handler);
     return 0;
 }
