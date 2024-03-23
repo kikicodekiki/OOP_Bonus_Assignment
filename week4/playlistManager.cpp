@@ -221,8 +221,8 @@ public:
               const char* fileName);
     void addSongFromFile(const char* fileName) ;
     void print() const;
-    void findSong (const char* songName);
-    void findByGenre ();
+    const Song& findSong (const char* songName) const;
+    void findByGenre (const char* genre) const;
     void sortByDuration ();
     void sortByName ();
     void mix (Song& song1, Song& song2);
@@ -344,6 +344,39 @@ void Playlist:: addSongFromFile(const char* fileName) {
     songs[numberOfSongs++] = readSongFromFile(fileName, newSong);
 }
 
+void printGenre (const Song& mySong) {
+    bool firstGenre = true;
+    for (int j = 1; j <= (int)(Genre::JAZZ); j <<= 1) {
+        if (mySong.getGenre() & j) {
+            if (!firstGenre) {
+                std::cout << " & ";
+            }
+            switch (static_cast<Genre>(j)) {
+                case Genre::ROCK:
+                    std::cout << "Rock";
+                    break;
+                case Genre::POP:
+                    std::cout << "Pop";
+                    break;
+                case Genre::HIP_HOP:
+                    std::cout << "Hip Hop";
+                    break;
+                case Genre::ELECTRONIC:
+                    std::cout << "Electronic";
+                    break;
+                case Genre::JAZZ:
+                    std::cout << "Jazz";
+                    break;
+                default:
+                    std::cout << "Unknown";
+                    break;
+            }
+            firstGenre = false;
+        }
+    }
+
+    std::cout << std::endl;
+}
 
 
 void Playlist::print() const {
@@ -353,51 +386,88 @@ void Playlist::print() const {
         std::cout << ", ";
 
         // Print genres
-        bool firstGenre = true;
-        for (int j = 1; j <= static_cast<int>(Genre::JAZZ); j <<= 1) {
-            if (songs[i].getGenre() & j) {
-                if (!firstGenre) {
-                    std::cout << " & ";
-                }
-                switch (static_cast<Genre>(j)) {
-                    case Genre::ROCK:
-                        std::cout << "Rock";
-                        break;
-                    case Genre::POP:
-                        std::cout << "Pop";
-                        break;
-                    case Genre::HIP_HOP:
-                        std::cout << "Hip Hop";
-                        break;
-                    case Genre::ELECTRONIC:
-                        std::cout << "Electronic";
-                        break;
-                    case Genre::JAZZ:
-                        std::cout << "Jazz";
-                        break;
-                    default:
-                        std::cout << "Unknown";
-                        break;
-                }
-                firstGenre = false;
-            }
-        }
+        printGenre(songs[i]);
 
-        std::cout << std::endl;
     }
 }
 
 
+const Song& Playlist::findSong (const char* songName) const {
+    for (size_t i = 0; i < numberOfSongs; i++) {
+        if (strcmp(songs[i].name, songName) == 0) {
+            std::cout << songName << " ";
+            songs[i].duration.print();
+            std::cout << " ";
+            printGenre(songs[i]);
+            return songs[i];
+        }
+    }
+    return {};
+}
+
+void Playlist :: findByGenre (const char* genre) const {
+
+    int myGenre = stringToGenre(genre);
+
+    for (size_t i = 0; i < numberOfSongs; i++) {
+        if(songs[i].getGenre() & myGenre) {
+            std::cout << songs[i].name << ", ";
+            songs[i].duration.print();
+            std::cout << ", ";
+            printGenre(songs[i]);
+            std::cout << std::endl;
+        }
+    }
+}
+
+void Playlist ::sortByDuration () {
+    //using selection sort
+    for (size_t i = 0; i < numberOfSongs - 1; i++) {
+        size_t minIndex = i;
+        for (size_t j = i + 1; j < numberOfSongs; ++j) {
+            if(songs[minIndex].duration.getDuration() > songs[j].duration.getDuration()) {
+                minIndex = j;
+            }
+        }
+
+        if (minIndex != i) {
+            std::swap (songs[i], songs[minIndex]);
+        }
+    }
+
+}
+
+void Playlist::sortByName() {
+    for (size_t i = 0; i < numberOfSongs - 1; i++ ) {
+        size_t minIndex = i;
+
+        for (size_t j = i + 1; j < numberOfSongs; j++ ) {
+            if (strcmp(songs[j].getName(), songs[minIndex].getName()) < 0) {
+                minIndex = j;
+            }
+        }
+
+        if (minIndex != i) {
+            std::swap (songs[i], songs[minIndex]);
+        }
+    }
+}
 
 
 int main() {
 
     Playlist p;
-    p.add("Song 2", 0, 1, 55, "pe", "song2.dat");
+    p.add("Song 2", 0, 1, 55, "pr", "song2.dat");
     p.add("Song 1", 0, 1, 5, "rj", "song1.dat");
+
+    p.findSong("Song 1");
+
+    p.findByGenre("r");
+
 
     p.print();
 
     return 0;
 
 }
+
