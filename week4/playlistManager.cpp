@@ -15,12 +15,12 @@ namespace GlobalConstants {
 typedef char contentInBytes[GlobalConstants::MAX_BYTES];
 
 enum class Genre : char {
-    ROCK = 'r',
-    POP = 'p',
-    HIP_HOP = 'h',
-    ELECTRONIC = 'e',
-    JAZZ = 'j',
-    Unknown = 'u'
+    ROCK = 1,
+    POP =  1 << 1,
+    HIP_HOP = 1 << 2,
+    ELECTRONIC = 1 << 3,
+    JAZZ = 1 << 4,
+    Unknown = 0
 };
 
 //straight from dimitriev's github :)
@@ -219,16 +219,16 @@ public:
 
 };
 
-int stringToGenre(const char* genreStr) {
+/*int stringToGenre(const char* genreStr) {
     int myGenre = genreStr[0];
     for (int i = 0; genreStr[i] != '\0'; i++) {
         char genreChar = genreStr[i];
         switch (genreChar) {
             case 'p':
-                myGenre |= ( ((int)(Genre::POP)));
+                myGenre |= (1 << ((int)(Genre::POP)));
                 break;
             case 'r':
-                myGenre |= ( ((int)(Genre::ROCK)));
+                myGenre |= (1 << ((int)(Genre::ROCK)));
                 break;
             case 'h':
                 myGenre |= (1 << ((int)(Genre::HIP_HOP)));
@@ -238,6 +238,34 @@ int stringToGenre(const char* genreStr) {
                 break;
             case 'j':
                 myGenre |= (1 << ((int)(Genre::JAZZ)));
+                break;
+            default:
+                break;
+        }
+    }
+    return myGenre;
+}
+*/
+
+int stringToGenre(const char* genreStr) {
+    int myGenre = 0;
+    for (int i = 0; genreStr[i] != '\0'; i++) {
+        char genreChar = genreStr[i];
+        switch (genreChar) {
+            case 'r':
+                myGenre |= static_cast<int>(Genre::ROCK);
+                break;
+            case 'p':
+                myGenre |= static_cast<int>(Genre::POP);
+                break;
+            case 'h':
+                myGenre |= static_cast<int>(Genre::HIP_HOP);
+                break;
+            case 'e':
+                myGenre |= static_cast<int>(Genre::ELECTRONIC);
+                break;
+            case 'j':
+                myGenre |= static_cast<int>(Genre::JAZZ);
                 break;
             default:
                 break;
@@ -269,7 +297,8 @@ void Playlist ::add(const char *songName, unsigned hours, unsigned minutes, unsi
         return;
     }
 
-    ofs << songName << " " << hours << ":" << minutes << ":" << seconds << " " << genre;
+    ofs << songName << " " << hours << ":" << minutes << ":"
+        << seconds << " " << genre << "\n";
     ofs.close();
 }
 
@@ -342,12 +371,12 @@ void Playlist::print() const {
 
         // Print genres
         bool firstGenre = true;
-        for (int j = 0; j < GlobalConstants::MAX_NUM_GENRES; j++) {
-            if ((int)(songs[i].getGenre()) & (1 << j)) {
+        for (int j = 1; j <= static_cast<int>(Genre::JAZZ); j <<= 1) {
+            if (songs[i].getGenre() & j) {
                 if (!firstGenre) {
-                    std::cout << ", ";
+                    std::cout << "&";
                 }
-                switch (static_cast<Genre>(1 << j)) {
+                switch (static_cast<Genre>(j)) {
                     case Genre::ROCK:
                         std::cout << "Rock";
                         break;
@@ -373,9 +402,9 @@ void Playlist::print() const {
 
         std::cout << std::endl;
     }
-
-
 }
+
+
 
 
 int main() {
@@ -394,6 +423,10 @@ p.print(); -> what it should print out
 // Song 2, 00:01:55, Pop&Rock
 // Song 1, 00:01:05, Pop
 */
+
+    return 0;
+
+}
 
     return 0;
 
