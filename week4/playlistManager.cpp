@@ -73,7 +73,7 @@ unsigned Time::getSeconds () const {
 }
 
 unsigned Time::getDuration() const {
-    return seconds;
+    return this->seconds;
 }
 
 bool Time::setHours(unsigned hours)
@@ -103,6 +103,7 @@ void Time::print() const {
                 << getMinutes()
                 << ":" << getSeconds();
 }
+
 
 class Song {
 public:
@@ -225,9 +226,10 @@ public:
     void findByGenre (const char* genre) const;
     void sortByDuration ();
     void sortByName ();
-    void mix (Song& song1, Song& song2);
+    void mix (Song& song1, const Song& song2);
     void writeSongToBinaryFile (const char songName[GlobalConstants::NAME_MAX_SIZE],
                            const char* fileName);
+    void save(const char* songName, const char* fileName);
 };
 
 int stringToGenre(const char* genreStr) {
@@ -422,16 +424,15 @@ void Playlist :: findByGenre (const char* genre) const {
 
 void Playlist ::sortByDuration () {
     //using selection sort
-    for (size_t i = 0; i < numberOfSongs - 1; i++) {
+    for (size_t i = 0; i < numberOfSongs - 1; ++i) {
         size_t minIndex = i;
         for (size_t j = i + 1; j < numberOfSongs; ++j) {
-            if(songs[minIndex].duration.getDuration() > songs[j].duration.getDuration()) {
+            if (songs[j].duration.getDuration() < songs[minIndex].duration.getDuration()) {
                 minIndex = j;
             }
         }
-
         if (minIndex != i) {
-            std::swap (songs[i], songs[minIndex]);
+            std::swap(songs[i], songs[minIndex]);
         }
     }
 
@@ -453,21 +454,48 @@ void Playlist::sortByName() {
     }
 }
 
+void Playlist::mix(Song &song1, const Song &song2) {
+    song1.mix(song1, song2);
+}
+
+void Playlist::save(const char* songName, const char* fileName) {
+    // Find the song by name
+    const Song& songToSave = findSong(songName);
+
+    // Open the binary file for writing
+    std::ofstream ofs(fileName, std::ios::binary);
+    if (!ofs.is_open()) {
+        std::cerr << "Error opening file: " << fileName << std::endl;
+        return;
+    }
+
+    // Write the content of the song to the file
+    ofs.write(songToSave.getContent(), songToSave.getContentLen());
+
+    // Close the file
+    ofs.close();
+}
+
 
 int main() {
 
     Playlist p;
-    p.add("Song 2", 0, 1, 55, "pr", "song2.dat");
+    p.add("Song 2", 7, 3, 55, "pr", "song2.dat");
     p.add("Song 1", 0, 1, 5, "rj", "song1.dat");
 
-    p.findSong("Song 1");
+    //p.findSong("Song 1");
 
-    p.findByGenre("r");
+    //p.findByGenre("r");
 
+    //p.sortByDuration();
+    //p.print();
 
-    p.print();
+    //p.save("Song 1", "song3.dat");
+
+    //p.print();
 
     return 0;
 
 }
+
 
