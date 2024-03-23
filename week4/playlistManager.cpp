@@ -45,6 +45,7 @@ public:
     unsigned  getHours () const;
     unsigned getMinutes () const;
     unsigned getSeconds () const;
+    unsigned getDuration () const;
     bool setHours (unsigned hours);
     bool setMinutes (unsigned minutes);
     bool setSeconds (unsigned seconds);
@@ -69,6 +70,10 @@ unsigned Time::getMinutes() const {
 
 unsigned Time::getSeconds () const {
     return seconds%GlobalConstants::SECONDS_IN_MINUTE;
+}
+
+unsigned Time::getDuration() const {
+    return seconds;
 }
 
 bool Time::setHours(unsigned hours)
@@ -216,36 +221,14 @@ public:
               const char* fileName);
     void addSongFromFile(const char* fileName) ;
     void print() const;
-
+    void findSong (const char* songName);
+    void findByGenre ();
+    void sortByDuration ();
+    void sortByName ();
+    void mix (Song& song1, Song& song2);
+    void writeSongToBinaryFile (const char songName[GlobalConstants::NAME_MAX_SIZE],
+                           const char* fileName);
 };
-
-/*int stringToGenre(const char* genreStr) {
-    int myGenre = genreStr[0];
-    for (int i = 0; genreStr[i] != '\0'; i++) {
-        char genreChar = genreStr[i];
-        switch (genreChar) {
-            case 'p':
-                myGenre |= (1 << ((int)(Genre::POP)));
-                break;
-            case 'r':
-                myGenre |= (1 << ((int)(Genre::ROCK)));
-                break;
-            case 'h':
-                myGenre |= (1 << ((int)(Genre::HIP_HOP)));
-                break;
-            case 'e':
-                myGenre |= (1 << ((int)(Genre::ELECTRONIC)));
-                break;
-            case 'j':
-                myGenre |= (1 << ((int)(Genre::JAZZ)));
-                break;
-            default:
-                break;
-        }
-    }
-    return myGenre;
-}
-*/
 
 int stringToGenre(const char* genreStr) {
     int myGenre = 0;
@@ -253,19 +236,19 @@ int stringToGenre(const char* genreStr) {
         char genreChar = genreStr[i];
         switch (genreChar) {
             case 'r':
-                myGenre |= static_cast<int>(Genre::ROCK);
+                myGenre |= (int)(Genre::ROCK);
                 break;
             case 'p':
-                myGenre |= static_cast<int>(Genre::POP);
+                myGenre |= (int)(Genre::POP);
                 break;
             case 'h':
-                myGenre |= static_cast<int>(Genre::HIP_HOP);
+                myGenre |= (int)(Genre::HIP_HOP);
                 break;
             case 'e':
-                myGenre |= static_cast<int>(Genre::ELECTRONIC);
+                myGenre |= (int)(Genre::ELECTRONIC);
                 break;
             case 'j':
-                myGenre |= static_cast<int>(Genre::JAZZ);
+                myGenre |= (int)(Genre::JAZZ);
                 break;
             default:
                 break;
@@ -302,7 +285,7 @@ void Playlist ::add(const char *songName, unsigned hours, unsigned minutes, unsi
     ofs.close();
 }
 
-void writeSongToBinaryFile (const char songName[GlobalConstants::NAME_MAX_SIZE],
+void Playlist::writeSongToBinaryFile (const char songName[GlobalConstants::NAME_MAX_SIZE],
                             const char* fileName) {
 //trqbva mi funckiq za da namerq pesenta po ime v playlista
     std::fstream ofs (fileName, std::ios::binary|std::ios::out);
@@ -374,7 +357,7 @@ void Playlist::print() const {
         for (int j = 1; j <= static_cast<int>(Genre::JAZZ); j <<= 1) {
             if (songs[i].getGenre() & j) {
                 if (!firstGenre) {
-                    std::cout << "&";
+                    std::cout << " & ";
                 }
                 switch (static_cast<Genre>(j)) {
                     case Genre::ROCK:
@@ -410,23 +393,10 @@ void Playlist::print() const {
 int main() {
 
     Playlist p;
-    p.add("Song 2", 0, 1, 55, "rp", "song2.dat");
-    p.add("Song 1", 0, 1, 5, "r", "song1.dat");
+    p.add("Song 2", 0, 1, 55, "pe", "song2.dat");
+    p.add("Song 1", 0, 1, 5, "rj", "song1.dat");
 
     p.print();
-
-    /*Playlist p;
-p.add(“Song 2”, 0, 1, 55, “rp”, “song2.dat“);
-p.add(“Song 1”, 0, 1, 5, “p”, “song1.dat“);
-
-p.print(); -> what it should print out
-// Song 2, 00:01:55, Pop&Rock
-// Song 1, 00:01:05, Pop
-*/
-
-    return 0;
-
-}
 
     return 0;
 
