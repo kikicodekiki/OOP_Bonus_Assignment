@@ -41,33 +41,6 @@ int isSubstring (const char* tagFromFile, const char* myTag) {
     return -1;
 }
 
-
-int convertCharToDigit(char ch)
-{
-    if(ch >= '0' && ch <= '9')
-        return ch - '0';
-    return -1;
-}
-unsigned convertStrToUnsigned(const char* str)
-{
-    if (!str)
-        return 0;
-
-    unsigned result = 0;
-    unsigned int i = 0;
-    while (*str)
-    {
-        if(str[i] >= '0' && str[i] <= '9') {
-            int digit = convertCharToDigit(*str);
-            if (digit == -1)
-                return 0;
-            (result *= 10) += digit;
-            str++;
-        }
-    }
-    return result;
-}
-
 bool isDigit (char ch) {
     return ch>='0' && ch <='9';
 }
@@ -88,7 +61,7 @@ private:
         while (*str) {
             if( *(ptr) == '&' && *(ptr+1) == '#' && *(ptr+2) != '\0'){
                 int asciiCode = 0;
-                ptr += 2; // Move past "&#" to the beginning of the number
+                ptr += 2; // move past "&#"
                 while (isDigit(*ptr)) {
                     asciiCode = asciiCode * 10 + (*ptr - '0');
                     ptr++;
@@ -111,15 +84,15 @@ public:
         setFileName(newFileName);
     }
 
-    const Row& getRow () const;
     void setFileName (const char* newFileName);
     void setRowCount ();
     void setColCount ();
-    void saveToFile ();
+    void saveToFile () const;
+    void saveToFileNew () const;
     size_t getRowCount () const;
     void loadFromFile();
     void parseRow (const char* row);
-
+    void trunc ();
     void addRow (size_t rowNumber, const char* values[] );
     void removeRow (size_t rowNumber);
     void edit (size_t rowNumber, size_t colNumber, const char* newValue);
@@ -142,6 +115,8 @@ void HtmlTable::loadFromFile() {
         return;
     }
 
+    setColCount(); // Update colCount based on the actual number of cells in each row
+
     char buff[GlobalConstants::BUFFER_SIZE];
     while (!file.eof()) {
         file.getline(buff, GlobalConstants::BUFFER_SIZE, '<');
@@ -153,10 +128,10 @@ void HtmlTable::loadFromFile() {
             // Ignore table tag
             continue;
         } else if (isSubstring(tagBuff, "tr") != -1) {
-            // Ignore tr tag
-            continue;
-        } else if (isSubstring(tagBuff, "th") != -1 ||
-                   isSubstring(tagBuff, "td") != -1) {
+            // Increment rowCount
+            rowCount++;
+            colCount = 0; // Reset column count for new row
+        } else if (isSubstring(tagBuff, "th") != -1 || isSubstring(tagBuff, "td") != -1) {
             // Process th and td tags
             file.getline(buff, GlobalConstants::BUFFER_SIZE, '<');
             fixAsciiCharacterEntityReference(buff); // Fix ASCII character entity reference
@@ -173,23 +148,38 @@ void HtmlTable::loadFromFile() {
 }
 
 
-void HtmlTable::setRowCount () {
-    std::ifstream file (fileName);
 
-    if( !file.is_open() ) {
+void HtmlTable::setRowCount() {
+    std::ifstream file(fileName);
+
+    if (!file.is_open()) {
         std::cerr << "Error opening " << fileName;
-        return ;
+        return;
     }
 
-    char buff[1024];
+    char line[GlobalConstants::BUFFER_SIZE];
+    rowCount = 0;
+    bool inTableRow = false;
 
-    while ( !file.eof() ) {
-        file.getline(buff, GlobalConstants::TABLE_MAX_SIZE, '>');
-        if (isSubstring(buff, "/tr") != -1) {
+    while (file.getline(line, GlobalConstants::BUFFER_SIZE)) {
+        if (isSubstring(line, "<tr>") != -1) {
+            // start of a new table row
+            inTableRow = true;
             rowCount++;
+        } else if (isSubstring(line, "</tr>") != -1) {
+            // end of the current table row
+            inTableRow = false;
+        } else if (inTableRow && (isSubstring(line, "<td>") != -1 ||
+                    isSubstring(line, "<th>") != -1)) {
+            
+            rowCount++;
+            inTableRow = false;  // to avoid counting multiple cells in one line as multiple rows
         }
     }
+
+    file.close();
 }
+
 
 size_t HtmlTable::getRowCount() const {
     return rowCount;
@@ -211,23 +201,45 @@ void HtmlTable::parseRow(const char* row) {
     }
 }
 
-void HtmlTable:: setColCount () {
-    std::ifstream file (fileName);
-
-    if( !file.is_open() ) {
+void HtmlTable::setColCount() {
+    std::ifstream file(fileName);
+    if (!file.is_open()) {
         std::cerr << "Error opening " << fileName;
-        return ;
+        return;
     }
 
-    char buff[1024];
+    char buff[GlobalConstants::BUFFER_SIZE];
+    size_t maxColCount = 0;
 
-    size_t curColCount = 0;
+    // Reset file pointer to the beginning of the file
+    file.clear();
+    file.seekg(0, std::ios::beg);
 
-    while ( !file.eof() ) {
-
-
+    while (!file.eof()) {
+        file.getline(buff, GlobalConstants::BUFFER_SIZE, '<');
+        if (isSubstring(buff, "<tr") != -1) {
+            size_t curColCount = 0;
+            while (!file.eof() && !isSubstring(buff, "</tr>") && curColCount < GlobalConstants::ROW_MAX_SIZE) {
+                file.getline(buff, GlobalConstants::BUFFER_SIZE, '>');
+                if (isSubstring(buff, "<th") != -1 || isSubstring(buff, "<td") != -1) {
+                    // Check if the content between the tags is empty
+                    char content[GlobalConstants::BUFFER_SIZE];
+                    file.getline(content, GlobalConstants::BUFFER_SIZE, '<');
+                    if (strlen(content) > 0) {
+                        curColCount++;
+                    }
+                }
+            }
+            maxColCount = std::max(maxColCount, curColCount);
+        }
     }
+
+    colCount = maxColCount;
+
+    file.close();
 }
+
+
 
 void HtmlTable::addRow (size_t rowNumber, const char* values[]) {
     if (rowNumber > rowCount + 1) {
@@ -277,6 +289,57 @@ void HtmlTable::edit(size_t rowNumber, size_t colNumber, const char *newValue) {
     strcpy(rows[rowNumber - 1][colNumber - 1], newValue);
 }
 
+void HtmlTable::trunc () {
+    std::ofstream out (fileName, std::ios::trunc);
+    if(!out.is_open()) {
+        std::cerr << "Error opening " << fileName;
+        return;
+    }
+    out.close();
+}
+
+void HtmlTable::saveToFile () const {
+    std::ofstream file(fileName);
+
+    if (!file.is_open()) {
+        return;
+    }
+
+    file << "<table>" << std::endl;
+    for (int i = 0; i < rowCount; i++) {
+        file << "  <tr>" << std::endl;
+        for (int j = 0; j < colCount; j++) {
+            if (isSubstring(rows[i][j], "<th>") != -1) {
+                file << "    <th>" << rows[i][j] << "</th>" << std::endl;
+            }
+            else if (isSubstring(rows[i][j], "<td>") != -1) {
+                file << "    <td>" << rows[i][j] << "</td>" << std::endl;
+            }
+        }
+        file << "  </tr>" << std::endl;
+    }
+    file << "</table>" << std::endl;
+
+    file.close();
+}
+
+void HtmlTable::saveToFileNew() const {
+    std::ofstream file(fileName, std::ios::app);
+
+    if(!file.is_open()) {
+        std::cerr << "Error opening " << fileName;
+        return;
+    }
+
+    for (size_t i = 0; i < rowCount; ++i) {
+        for (size_t j = 0; j < colCount; ++j) {
+            file << "|" << rows[i][j];
+        }
+        file << "|\n";
+    }
+}
+
+
 void HtmlTable::printTable() const {
     for (size_t i = 0; i < rowCount; ++i) {
         for (size_t j = 0; j < colCount; ++j) {
@@ -288,7 +351,7 @@ void HtmlTable::printTable() const {
 
 int main() {
 
-    const char fileName[GlobalConstants::MAX_FILE_NAME_SIZE] = "sample.dat";
+    const char fileName[GlobalConstants::MAX_FILE_NAME_SIZE] = "sample.txt";
     std::fstream file (fileName, std::ios::in | std::ios::out);
 
     char buff[GlobalConstants::BUFFER_SIZE];
@@ -299,10 +362,9 @@ int main() {
         }
     }
     HtmlTable table (fileName);
-    table.setFileName("sample.dat");
     table.loadFromFile();
 
-    // Sample manipulation commands
+
     table.printTable();
     table.addRow(2, (const char*[]){"New", "Row"});
     table.printTable();
@@ -314,4 +376,3 @@ int main() {
     return 0;
 
 }
-
