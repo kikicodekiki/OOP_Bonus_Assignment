@@ -1,66 +1,67 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
-#include <sstream>
+
 
 
 namespace GlobalConstants {
     constexpr size_t CELL_MAX_SIZE = 50; // max 50 symbols
-    constexpr size_t ROW_MAX_SIZE = 30; // max 30 cells
-    constexpr size_t TABLE_MAX_SIZE = 300; // max 30 rows
+    constexpr size_t ROW_MAX_SIZE = 15; // max 15 cells
+    constexpr size_t TABLE_MAX_SIZE = 100; // max 100 rows
     constexpr char SEP = '/';
     constexpr int BUFFER_SIZE = 1024;
+    constexpr size_t MAX_FILE_NAME_SIZE = 30;
 
 }
-typedef char Table[GlobalConstants::TABLE_MAX_SIZE];
-typedef Table Row[GlobalConstants::ROW_MAX_SIZE];
+typedef char Cell[GlobalConstants::CELL_MAX_SIZE];
+typedef Cell Row [GlobalConstants::ROW_MAX_SIZE];
 
-struct CsvTable {
-    Row rows [GlobalConstants::ROW_MAX_SIZE];
-    size_t rowCount = 0;
-    size_t colCount = 0;
-};
-
-size_t getRowCount (const char* fileName) {
-    std::stringstream myStream (fileName);
-
-    size_t curRowCount = 0; //because of the first row
-
-    char buffer[GlobalConstants::BUFFER_SIZE];
-
-    while (!myStream.eof()) {
-       myStream >> buffer;
-
-       if( strcmp(buffer, "<tr>") == 0 ) {
-           curRowCount ++;
-       }
+int isSubstring (const char* tagFromFile, const char* myTag) {
+    if(!tagFromFile || !myTag) {
+        return -1;
     }
 
-    return curRowCount;
+    size_t tagFromFileSize = strlen(tagFromFile);
+    size_t myTagSize = strlen (myTag);
 
-}
+    int i, j;
 
-size_t parseRow (const char* row, Row& toReturn) {
-    std::stringstream myStream (row);
+    for (i = 0; i <= tagFromFileSize - myTagSize; i++) {
+        for(j = 0; j < tagFromFileSize; j++) {
+            if ( myTag[ i + j ] != tagFromFile[j] ){
+                break;
+            }
 
-    size_t currentColumnCount = 0;
-
-    char buffer[GlobalConstants::BUFFER_SIZE];
-
-    while (!myStream.eof()) {
-        myStream >> buffer;
-
-        if( strcmp(buffer, "<td>") == 0 ) {
-            currentColumnCount++;
+            if (j == tagFromFileSize) {
+                return i;
+            }
         }
     }
 
-    return currentColumnCount;
-
+    return -1;
 }
 
 
-CsvTable parseFromFile ( std::ifstream& ifs ) {
+bool tagIsPresent (const char* fileName, const char* seekedTag) {
+    std::ifstream file (fileName, std::ios::in);
+
+    if ( !file.is_open() ) {
+        std::cerr << "Error opening file: " << fileName;
+        return -1;
+    }
+
+    char buff[1024];
+    bool tagIsPresent = false;
+    bool slashIsPresent = false;
+    bool characterEntityPresent = false;
+
+    while ( !file.eof() ) {
+        file.getline(buff, '>');
+        if (isSubstring(buff, seekedTag) != -1) {
+            tagIsPresent = true;
+        }
+
+    }
 
 }
 
@@ -90,53 +91,97 @@ unsigned convertStrToUnsigned(const char* str)
     return result;
 }
 
-
-typedef char Table [GlobalConstants::TABLE_MAX_SIZE];
-typedef Table Row[GlobalConstants::CELL_MAX_SIZE];
-
-struct CvsTable {
-public:
-    Row rows[GlobalConstants::ROW_MAX_SIZE];
-    size_t rowsCount = 0;
-    size_t colsCount = 0;
-};
-
-size_t parseNumbers () {
-
-};
-
-size_t parseFromHTML (const char* myStr, Row& toReturn) {
-
-    size_t lengthStr = strlen(myStr);
-    size_t begin = 0, end = 0;
-
-    for (size_t i = 0; i < lengthStr; i++) {
-
-        if ( myStr[i] == '>' ) {
-            begin = i + 1;
-            break;
-        }
-    }
-
-    while (myStr[begin] == ' ') {
-        begin++;
-    }
-
-    for ( size_t i = begin; i < lengthStr; i++) {
-
-        if ( myStr[i] == '<' ) {
-            end = i - 1;
-            break;
-        }
-    }
-
-
+bool isDigit (char ch) {
+    return ch>='0' && ch <='9';
 }
 
+class HtmlTable {
+private:
+    Row rows [GlobalConstants::TABLE_MAX_SIZE] = {} ;
+    size_t rowCount = 0;
+    size_t colCount = 0;
+    char fileName [GlobalConstants::MAX_FILE_NAME_SIZE] = {};
+public:
+    HtmlTable() = default;
 
+    const Row& getRow () const;
+    void setFileName (const char* newFileName);
+    size_t parseRow ();
+    void setRowCount ();
+    void setColCount ();
+    void printTable ();
+    void saveToFile ();
+    size_t getRowCount () const;
+    void loadFromFile();
+    void parseRow (const char* row, std::ifstream& file);
+
+};
+
+void HtmlTable::setFileName (const char* newFileName) {
+    if (!newFileName || strlen(newFileName) > GlobalConstants::MAX_FILE_NAME_SIZE - 1 ) {
+        std::cerr << "Invalid file name";
+        return;
+    }
+
+    strcpy(fileName, newFileName);
+}
+
+void HtmlTable::loadFromFile() {
+    std::ifstream file (fileName);
+    if(!file.is_open()) {
+        std::cerr << "Error opening file " << fileName;
+        return;
+    }
+
+    char buff[GlobalConstants::BUFFER_SIZE];
+    while(!file.eof()) {
+        file.getline(buff, GlobalConstants::BUFFER_SIZE, '>');
+
+        if(isSubstring(buff, "tr") == -1) {
+            parseRow(buff, file);
+        }
+    }
+
+    file.close();
+}
+
+void HtmlTable::setRowCount () {
+    std::ifstream file (fileName);
+
+    if( !file.is_open() ) {
+        std::cerr << "Error opening " << fileName;
+        return ;
+    }
+
+    char buff[1024];
+
+    while ( !file.eof() ) {
+        file.getline(buff, GlobalConstants::TABLE_MAX_SIZE, '>');
+        if (isSubstring(buff, "/tr") != -1) {
+            rowCount++;
+        }
+    }
+}
+
+size_t HtmlTable::getRowCount() const {
+    return rowCount;
+}
+
+void HtmlTable::parseRow(const char* row, std::ifstream& file) {
+    size_t currentColumnCount = 0;
+    size_t pos = 0;
+    char cell[GlobalConstants::CELL_MAX_SIZE];
+
+    while (row[pos] != '\0' && currentColumnCount < GlobalConstants::ROW_MAX_SIZE) {
+        while(row[pos] != 't' && row[pos] != 'r')
+    }
+}
+
+void HtmlTable:: setColCount () {
+
+}
 
 
 int main() {
 
 }
-
