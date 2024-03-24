@@ -101,6 +101,30 @@ private:
     size_t rowCount = 0;
     size_t colCount = 0;
     char fileName [GlobalConstants::MAX_FILE_NAME_SIZE] = {};
+
+    void fixAsciiCharacterEntityReference(char* str) {
+        if(!str) {
+            return;
+        }
+
+        char* ptr = str;
+        while (*str) {
+            if( *(ptr) == '&' && *(ptr+1) == '#' && *(ptr+2) != '\0'){
+                int asciiCode = 0;
+                ptr += 2; // Move past "&#" to the beginning of the number
+                while (isDigit(*ptr)) {
+                    asciiCode = asciiCode * 10 + (*ptr - '0');
+                    ptr++;
+                }
+                *str++ = (char)(asciiCode);
+                ptr++;
+            } else {
+                *str++ = *ptr++;
+            }
+
+        }
+        *str = '\0';
+    }
 public:
     HtmlTable() = default;
 
@@ -134,10 +158,19 @@ void HtmlTable::loadFromFile() {
     }
 
     char buff[GlobalConstants::BUFFER_SIZE];
-    while(!file.eof()) {
-        file.getline(buff, GlobalConstants::BUFFER_SIZE, '>');
+    while (!file.eof()) {
+        file.getline(buff, GlobalConstants::BUFFER_SIZE, '<');
 
-        if(isSubstring(buff, "tr") == -1) {
+        char tagBuff[GlobalConstants::BUFFER_SIZE];
+        file.getline(tagBuff, GlobalConstants::BUFFER_SIZE, '>');
+
+        if (isSubstring(tagBuff, "th") != -1) {
+            file.getline(buff, GlobalConstants::BUFFER_SIZE, '<');
+            fixAsciiCharacterEntityReference(buff); // Fix ASCII character entity reference
+        }
+
+        if (isSubstring(tagBuff, "td") != -1) {
+            fixAsciiCharacterEntityReference(buff); // Fix ASCII character entity reference
             parseRow(buff, file);
         }
     }
@@ -168,13 +201,7 @@ size_t HtmlTable::getRowCount() const {
 }
 
 void HtmlTable::parseRow(const char* row, std::ifstream& file) {
-    size_t currentColumnCount = 0;
-    size_t pos = 0;
-    char cell[GlobalConstants::CELL_MAX_SIZE];
 
-    while (row[pos] != '\0' && currentColumnCount < GlobalConstants::ROW_MAX_SIZE) {
-        while(row[pos] != 't' && row[pos] != 'r')
-    }
 }
 
 void HtmlTable:: setColCount () {
