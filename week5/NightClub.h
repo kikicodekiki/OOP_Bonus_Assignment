@@ -46,11 +46,26 @@ public:
         }
 
         if (curAlcoholCount < ALCOHOL_MAX_NUMBER) {
+            //ne e dobra abstrakciq :/
             alcohol[curAlcoholCount].setAlchoholName(name);
             alcohol[curAlcoholCount].setAlchoholPrice(price);
             int myName = (int)(alcohol[curAlcoholCount].getAlcoholName());
             alcoholBottles[myName]++;
             curAlcoholCount++;
+        }
+    }
+
+    void addShisha (const char* type, double price) {
+        if (!type || price < EPS) {
+            return;
+        }
+
+        if (curShishaCount < NARGAS_MAX_NUMBER) {
+            shisha[curShishaCount].setShishaType(type);
+            shisha[curShishaCount].setShishaPrice(price);
+            int myType = (int)(shisha[curShishaCount].getShishaType());
+            shishaTypes[myType]++;
+            curShishaCount++;
         }
     }
 
