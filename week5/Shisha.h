@@ -4,35 +4,36 @@
 
 using GlobalConstants::EPS;
 
+enum class ShishaType {
+    OS_QUEEN,
+    TROPICAL,
+    MINT
+};
+
+ShishaType getTypeFromStr (const char* str) {
+    if(!str) {
+        return {};
+    }
+
+    if (strcmp("OS-queen", str) == 0) {
+        return ShishaType::OS_QUEEN;
+    }
+
+    if (strcmp("tropical", str) == 0) {
+        return ShishaType::TROPICAL;
+    }
+
+    if (strcmp("mint", str) == 0) {
+        return ShishaType::MINT;
+    }
+
+}
+
 struct Shisha {
 private:
-    enum class ShishaType {
-        OS_QUEEN,
-        TROPICAL,
-        MINT
-    };
 
     ShishaType name = ShishaType::OS_QUEEN;
     double price = 0.0;
-
-    ShishaType getTypeFromStr (const char* str) {
-        if(!str) {
-            return {};
-        }
-
-        if (strcmp("OS-queen", str) == 0) {
-            return name = ShishaType::OS_QUEEN;
-        }
-
-        if (strcmp("tropical", str) == 0) {
-            return name = ShishaType::TROPICAL;
-        }
-
-        if (strcmp("mint", str) == 0) {
-            return name = ShishaType::MINT;
-        }
-
-    }
 
 public:
     Shisha() = default;
@@ -42,14 +43,22 @@ public:
             return;
         }
 
-        getTypeFromStr(newName);
+        name = getTypeFromStr(newName);
     }
 
-    void setAlchoholPrice (double newPrice) {
+    void setShishaPrice (double newPrice) {
         if (newPrice < EPS || std::abs(newPrice - price) < EPS) {
             return;
         }
 
         price = newPrice;
+    }
+
+    ShishaType getShishaType () const {
+        return name;
+    }
+
+    double getPrice () const {
+        return price;
     }
 };
