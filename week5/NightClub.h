@@ -95,6 +95,11 @@ public:
     }
 
     bool hasBalloon(const char* color) {
+
+        if(!color) {
+            return false;
+        }
+
        int newColor = (int) (getColorFromStr(color));
        if (balloonColors[newColor] > 0) {
            return true;
@@ -103,6 +108,11 @@ public:
     }
 
     bool hasAlcohol(const char* name) {
+
+        if(!name) {
+            return false;
+        }
+
         int newName = (int) (getNameFromStr(name));
         if (alcoholBottles[newName] > 0) {
             return true;
@@ -111,11 +121,86 @@ public:
     }
 
     bool hasNargile( const char* flavor) {
+        if(!flavor) {
+            return false;
+        }
+
         int newType = (int) (getTypeFromStr(flavor));
         if (shishaTypes[newType] > 0) {
             return true;
         }
         return false;
     }
+
+    void removeBalloon(const char* color) {
+        if(!color) {
+            return;
+        }
+
+        int myColor = (int)(getColorFromStr(color));
+        if (myColor < 1) {
+            return;
+        }
+
+        for (size_t i = 0; i < curBalloonCount; ++i) {
+            if (balloons[i].getBalloonColor() == getColorFromStr(color)) {
+                for (size_t j = i; j < curBalloonCount - 1; ++j) {
+                    balloons[j] = balloons[j + 1];
+                }
+                curBalloonCount--;
+                balloonColors[myColor]--;
+                break;
+            }
+        }
+
+    }
+
+    void removeAlcohol(const char* name) {
+        if(!name) {
+            return;
+        }
+
+        int myName = (int)(getNameFromStr(name));
+        if (myName < 1) {
+            return;
+        }
+
+        for (size_t i = 0; i < curAlcoholCount; ++i) {
+            if (alcohol[i].getAlcoholName() == getNameFromStr(name)) {
+                for (size_t j = i; j < curAlcoholCount - 1; ++j) {
+                    alcohol[j] = alcohol[j + 1];
+                }
+                curAlcoholCount--;
+                balloonColors[myName]--;
+                break;
+            }
+        }
+    }
+
+    void removeShisha( const char* flavor) {
+        if(!flavor) {
+            return;
+        }
+
+        int myType = (int)(getTypeFromStr(flavor));
+        if (myType < 1) {
+            return;
+        }
+
+        for (size_t i = 0; i < curShishaCount; ++i) {
+            if (shisha[i].getShishaType() == getTypeFromStr(flavor)) {
+                for (size_t j = i; j < curShishaCount - 1; ++j) {
+                    shisha[j] = shisha[j + 1];
+                }
+                curShishaCount--;
+                shishaTypes[myType]--;
+                break;
+            }
+        }
+    }
+
+
+};
+
 
 };
