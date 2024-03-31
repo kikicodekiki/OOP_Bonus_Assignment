@@ -201,7 +201,7 @@ public:
         }
     }
 
-    double returnBill(const char* fileName) {
+    double returnBillFromFile(const char* fileName) {
         if (!fileName) {
             return -1.0;
         }
@@ -237,7 +237,7 @@ public:
             }
         }
 
-        
+
         for (size_t i = 0; i < curAlcoholCount; ++i) {
             totalBill += alcohol[i].getPrice();
         }
@@ -253,5 +253,23 @@ public:
         return totalBill;
     }
 
+
+    double returnBill () {
+        double totalBill = 0.0;
+
+        for (size_t i = 0; i < curAlcoholCount; ++i) {
+            totalBill += alcohol[i].getPrice();
+        }
+
+        for (size_t i = 0; i < curBalloonCount; ++i) {
+            totalBill += balloons[i].getPrice();
+        }
+
+        for (size_t i = 0; i < curShishaCount; ++i) {
+            totalBill += shisha[i].getPrice();
+        }
+
+        return totalBill;
+    }
 
 };
