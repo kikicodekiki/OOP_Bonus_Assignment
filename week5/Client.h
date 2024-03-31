@@ -23,6 +23,15 @@ private:
 
 public:
     Client() = default;
+
+    Client (const char* newClient, const char* newFile) {
+        if(!newClient || !newFile) {
+            Client();
+        }
+        setClientName(newClient);
+        setFileName(newFile);
+    }
+
     ~Client() {
         free();
     }
@@ -41,5 +50,22 @@ public:
     }
     const char* getFileName () const {
         return fileName;
+    }
+
+    void setClientName (const char* newName) {
+        if(!newName) {
+            return;
+        }
+
+        int size = strlen(newName) + 1;
+        clientName = new char [size];
+        strcpy (clientName, newName);
+    }
+
+    void setFileName (const char* newName) {
+        if(!newName) {
+            return;
+        }
+        strcpy(fileName, newName);
     }
 };
