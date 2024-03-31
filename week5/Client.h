@@ -5,16 +5,41 @@ using GlobalConstants::NAME_MAX_SIZE;
 
 struct Client {
 private:
-    char* clientName;
-    char fileName[NAME_MAX_SIZE];
+    char* clientName = nullptr;
+    char fileName[NAME_MAX_SIZE] = "unknown";
     //dinamichna pamet -> big 4
 
-    void copyFrom(const Client& data);
-    void free();
+    void copyFrom(const Client& other) {
+        int size = strlen(other.clientName) + 1;
+        clientName = new char [size];
+        strcpy (clientName, other.clientName);
+        strcpy(fileName, other.fileName);
+    }
+
+    void free() {
+        delete[] clientName;
+        clientName = nullptr;
+    }
 
 public:
-    Client();
-    ~Client();
-    Client (const Client& other);
-    Client& operator=(const Client& other);
+    Client() = default;
+    ~Client() {
+        free();
+    }
+    Client (const Client& other) {
+        copyFrom(other);
+    }
+    Client& operator=(const Client& other) {
+        if(this != &other) {
+            free();
+            copyFrom(other);
+        }
+        return *this;
+    }
+    const char* getClientName () const {
+        return clientName;
+    }
+    const char* getFileName () const {
+        return fileName;
+    }
 };
