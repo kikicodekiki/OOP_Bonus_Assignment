@@ -5,6 +5,7 @@
 #include "Narga.h"
 #include "Alchohol.h"
 #include <fstream>
+#include "Client.h"
 
 using namespace GlobalConstants;
 
@@ -199,8 +200,21 @@ public:
         }
     }
 
+    double returnBill (const char* fileName) {
+        if(!fileName) {
+            return -1.0;
+        }
+
+        std::ifstream in (fileName);
+        if(!in.is_open()) {
+            return -1;
+        }
+
+        double totalBill = 0.0;
+        char buff[1024];
+
+
+    }
 
 };
 
-
-};
