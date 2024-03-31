@@ -6,6 +6,7 @@
 #include "Alchohol.h"
 #include <fstream>
 #include "Client.h"
+#include "isSubstring.h"
 
 using namespace GlobalConstants;
 
@@ -200,21 +201,57 @@ public:
         }
     }
 
-    double returnBill (const char* fileName) {
-        if(!fileName) {
+    double returnBill(const char* fileName) {
+        if (!fileName) {
             return -1.0;
         }
 
-        std::ifstream in (fileName);
-        if(!in.is_open()) {
+        std::ifstream in(fileName);
+        if (!in.is_open()) {
             return -1;
         }
 
         double totalBill = 0.0;
         char buff[1024];
 
+        while (!in.eof()) {
+            in.getline(buff, 1024, ':');
+            if (isSubstring(buff, "Alcohols") != -1) {
+                //predpolagame che sa podredeni alcohol/baloni/nargileta
+                while (in.peek() != 'B') {
+                    //tova s peek mi go pokazaha edni ot vtori kurs na konsultaciqta
+                    // nz dali mozhe da go polzvam no iskah
+                    //da go probvam :) *mazna usmivka*
+                    readAlcoholFromFile(in);
+                }
+            } else if (isSubstring(buff, "Baloons") != -1) {
 
+                while (in.peek() != 'N') {
+                    readBalloonFromFile(in);
+                }
+            } else if (isSubstring(buff, "Nargas") != -1) {
+
+                while (!in.eof()) {
+                    readShishaFromFile(in);
+                }
+            }
+        }
+
+        
+        for (size_t i = 0; i < curAlcoholCount; ++i) {
+            totalBill += alcohol[i].getPrice();
+        }
+
+        for (size_t i = 0; i < curBalloonCount; ++i) {
+            totalBill += balloons[i].getPrice();
+        }
+
+        for (size_t i = 0; i < curShishaCount; ++i) {
+            totalBill += shisha[i].getPrice();
+        }
+
+        return totalBill;
     }
 
-};
 
+};
