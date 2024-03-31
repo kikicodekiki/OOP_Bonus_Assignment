@@ -4,6 +4,7 @@
 #include "Baloons.h"
 #include "Narga.h"
 #include "Alchohol.h"
+#include <fstream>
 
 using namespace GlobalConstants;
 
@@ -67,6 +68,30 @@ public:
             shishaTypes[myType]++;
             curShishaCount++;
         }
+    }
+
+    void readAlcoholFromFile (std::ifstream& in) {
+        char name[NAME_MAX_SIZE];
+        in.getline(name, NAME_MAX_SIZE, '-');
+        double price;
+        in>>price;
+        addAlcohol(name, price);
+    }
+
+    void readBalloonFromFile (std::ifstream& in) {
+        char name[NAME_MAX_SIZE];
+        in.getline(name, NAME_MAX_SIZE, '-');
+        double price;
+        in>>price;
+        addBalloon(name, price);
+    }
+
+    void readShishaFromFile (std::ifstream& in) {
+        char name[NAME_MAX_SIZE];
+        in.getline(name, NAME_MAX_SIZE, '-');
+        double price;
+        in>>price;
+        addShisha(name, price);
     }
 
 };
