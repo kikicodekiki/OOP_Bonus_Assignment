@@ -1,6 +1,9 @@
 #pragma once
 #include <iostream>
 #include "GlobalConstants.h"
+#include "Baloons.h"
+#include "Narga.h"
+#include "Alchohol.h"
 
 using namespace GlobalConstants;
 
@@ -10,11 +13,45 @@ private:
     size_t curShishaCount = 0;
     size_t curBalloonCount = 0;
 
-    //reshih che mai bez bitset shte e po ok 
+    Alcohol alcohol[ALCOHOL_MAX_NUMBER] = {};
+    Shisha shisha[NARGAS_MAX_NUMBER] = {};
+    Balloons balloons[BALLOONS_MAX_NUMBER] = {};
+
+    //reshih che mai bez bitset shte e po ok
 
     int balloonColors [4] = {0}; // 0 - green 1 - red 2-yellow 3-pink
     int alcoholBottles [4] = {0}; // 0 - blackLabel 1- jameson 2 - moet 3 - don julio
     int shishaTypes [3] = {0}; // 0 - osQueen 1 - tropical 2 - mint
 
+public:
+    NightClub() = default;
+
+    void addBalloon(const char* color, double price) {
+        if (!color || price < EPS ) {
+            return;
+        }
+
+        if (curBalloonCount < BALLOONS_MAX_NUMBER) {
+            balloons[curBalloonCount].setBalloonColor(color);
+            balloons[curBalloonCount].setBalloonPrice(price);
+            int myColor = (int)(balloons[curBalloonCount].getBalloonColor());
+            balloonColors[myColor]++;
+            curBalloonCount++;
+        }
+    }
+
+    void addAlcohol (const char* name, double price) {
+        if (!name || price < EPS) {
+            return;
+        }
+
+        if (curAlcoholCount < ALCOHOL_MAX_NUMBER) {
+            alcohol[curAlcoholCount].setAlchoholName(name);
+            alcohol[curAlcoholCount].setAlchoholPrice(price);
+            int myName = (int)(alcohol[curAlcoholCount].getAlcoholName());
+            alcoholBottles[myName]++;
+            curAlcoholCount++;
+        }
+    }
 
 };
