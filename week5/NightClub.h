@@ -94,4 +94,28 @@ public:
         addShisha(name, price);
     }
 
+    bool hasBalloon(const char* color) {
+       int newColor = (int) (getColorFromStr(color));
+       if (balloonColors[newColor] > 0) {
+           return true;
+       }
+       return false;
+    }
+
+    bool hasAlcohol(const char* name) {
+        int newName = (int) (getNameFromStr(name));
+        if (alcoholBottles[newName] > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    bool hasNargile( const char* flavor) {
+        int newType = (int) (getTypeFromStr(flavor));
+        if (shishaTypes[newType] > 0) {
+            return true;
+        }
+        return false;
+    }
+
 };
