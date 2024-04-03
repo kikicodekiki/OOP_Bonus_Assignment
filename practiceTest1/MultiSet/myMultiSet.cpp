@@ -76,6 +76,43 @@ bool MultiSetLessThanThree::add (unsigned n) {
 
 
 }
+
+bool MultiSetLessThanThree::remove (unsigned int n) {
+
+    unsigned bucketIndex = getBucketIndex(n);
+    unsigned bitIndex = getBitIndex(n);
+
+    uint8_t& currBucket = buckets[bucketIndex]; //za da mozhem direktno da manipulirame
+
+    uint8_t mask = 1 << (bitIndex*2); //zashtoto dve kkletki predstavqt edna cifra
+
+    mask = ~mask;
+
+    unsigned occurrences = getCountOccurrences(n);
+
+    switch (occurrences) {
+        case 3:
+        case 1: {
+            currBucket &= mask;
+            return true;
+        }
+
+        case 2 : {
+            mask = ~mask;
+            currBucket &= mask; //setva purviq
+            mask <<= 1;
+            currBucket &= ~mask; //setva vtoriq
+
+            return true;
+
+        }
+
+        default: return false;
+
+    }
+
+}
+
 unsigned MultiSetLessThanThree::getBucketIndex(unsigned num) const {
     return Num / elementsInBucket;
 }
