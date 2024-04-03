@@ -8,7 +8,7 @@ class BigNumber {
     bool checkOnlyDigits (const char* num);
 
     void free();
-    void copyFrom();
+    void copyFrom(const BigNumber& other);
 
 public:
     BigNumber() = default;
