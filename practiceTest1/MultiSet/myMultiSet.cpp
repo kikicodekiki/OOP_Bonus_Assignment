@@ -61,24 +61,21 @@ bool MultiSetLessThanThree::add (unsigned n) {
     unsigned occurrences = getCountOccurrences(n);
 
     switch (occurrences) {
-        case 3:
-        case 1: {
-            currBucket &= ~mask; // Clear the bit
+        case 0:
+        case 2:
+            currBucket |= mask;
             return true;
-        }
-        case 2: {
-            currBucket |= mask; // Set the bit
-            mask <<= 1; // Move to the next bit
-            currBucket &= ~mask; // Clear the next bit
+        case 1:
+            currBucket &= ~mask; //setva purviq
+            mask <<= 1; //otiva na vtoriq
+            currBucket |= mask; //setva i vtoriq
             return true;
-        }
         default:
             return false;
     }
 
 
 }
-
 unsigned MultiSetLessThanThree::getBucketIndex(unsigned num) const {
     return Num / elementsInBucket;
 }
