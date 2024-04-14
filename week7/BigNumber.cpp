@@ -91,3 +91,76 @@ BigNumber::BigNumber(long long int newNum) {
         size = arrLen;
     }
 }
+
+void BigNumber::copyFrom(const BigNumber &other) {
+    number = new char[other.size + 1];
+    size = other.size + 1;
+    strcpy(number, other.number);
+    isPositiveNumber = other.isPositiveNumber;
+}
+
+BigNumber::BigNumber (const BigNumber& other){
+    copyFrom(other);
+}
+
+BigNumber& BigNumber::operator=(const BigNumber &other) {
+    if (this != &other) {
+        free();
+        copyFrom(other);
+    }
+    return *this;
+}
+
+bool operator == (const BigNumber& lhs, const BigNumber& rhs)  {
+    if (lhs.isPositiveNumber != rhs.isPositiveNumber) {
+        return false;
+    }
+
+    if(lhs.size != rhs.size) {
+        return false;
+    }
+
+    for (size_t i = 0; i < lhs.size; ++i) {
+        if (lhs.number[i] != rhs.number[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool operator != (const BigNumber& lhs, const BigNumber& rhs) {
+    return !(lhs == rhs);
+}
+
+bool operator < (const BigNumber& lhs, const BigNumber& rhs) {
+    if ((lhs.isPositiveNumber) && !(rhs.isPositiveNumber)) {
+        return false;
+    } else if (!lhs.isPositiveNumber && rhs.isPositiveNumber) {
+        return true;
+    }
+
+    if (lhs.size != rhs.size) {
+        if (lhs.isPositiveNumber) { //  positive
+            return lhs.size < rhs.size; // Less digits
+        } else { // negative
+            return lhs.size > rhs.size; // Less digits means a larger number
+        }
+    }
+
+    for (int i = lhs.size - 1; i >= 0; --i) { // Start from the most significant digit
+        if (lhs.number[i] < rhs.number[i]) {
+            return true;
+        } else if (lhs.number[i] > rhs.number[i]) {
+            return false;
+        }
+    }
+
+    return false; // the digits are the same
+}
+
+bool operator> (const BigNumber& lhs, const BigNumber& rhs) {
+    return !(lhs < rhs) && !(rhs==lhs);
+}
+
+
