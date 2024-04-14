@@ -23,11 +23,6 @@ public:
     BigNumber (const BigNumber& other);
     BigNumber& operator= (const BigNumber& other);
 
-    bool operator == (const BigNumber& other) const;
-    bool operator != (const BigNumber& other) const;
-    bool operator < (const BigNumber& other) const;
-    bool operator > (const BigNumber& other) const;
-
     BigNumber& operator += (const BigNumber& other);
     BigNumber operator + (const BigNumber& other) const;
     BigNumber& operator -= (const BigNumber& other);
@@ -50,5 +45,10 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, const BigNumber& number);
     friend std::istream& operator>>(std::istream& in, BigNumber& number);
+
+    friend bool operator == (const BigNumber& lhs, const BigNumber& rhs) ;
+    friend bool operator != (const BigNumber& lhs, const BigNumber& rhs) ;
+    friend bool operator < (const BigNumber& lhs, const BigNumber& rhs) ;
+    friend bool operator > (const BigNumber& lhs, const BigNumber& rhs) ;
 
 };
