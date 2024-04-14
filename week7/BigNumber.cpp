@@ -1,6 +1,7 @@
 #include "BigNumber.h"
 #include <cmath>
 #include <cstring>
+#include <algorithm>
 
 bool isNumber(char ch) {
     return (ch >= '0' && ch <= '9');
@@ -161,6 +162,46 @@ bool operator < (const BigNumber& lhs, const BigNumber& rhs) {
 
 bool operator> (const BigNumber& lhs, const BigNumber& rhs) {
     return !(lhs < rhs) && !(rhs==lhs);
+}
+
+BigNumber& BigNumber::operator+=(const BigNumber& other) {
+    if (isPositiveNumber != other.isPositiveNumber) {
+        //convert to substraction????????????????????????
+    } {
+        // have the same sign
+        size_t maxSize = std::max(size, other.size);
+        char* result = new char[maxSize + 1];  // +1 for potential carry
+        int carry = 0;
+        size_t i = 0;
+
+        for (; i < maxSize; i++) {
+            int digit1 = i < size ? number[size - i - 1] - '0' : 0;
+            int digit2 = i < other.size ? other.number[other.size - i - 1] - '0' : 0;
+            int sum = digit1 + digit2 + carry;
+            result[i] = (sum % 10) + '0';
+            carry = sum / 10;
+        }
+
+        if (carry) {
+            result[i++] = carry + '0';
+        }
+
+        delete[] number;
+        number = new char[i];
+        size = i;
+
+        // Copy back to number, reversing if necessary
+        for (size_t j = 0; j < i; j++) {
+            number[j] = result[i - j - 1];
+        }
+        delete[] result;
+
+        if (!isPositiveNumber && !other.isPositiveNumber) {
+            isPositiveNumber = false;
+        }
+    }
+
+    return *this;
 }
 
 
