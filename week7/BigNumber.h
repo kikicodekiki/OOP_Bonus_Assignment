@@ -7,7 +7,6 @@ private:
     char* number = nullptr;
     bool isPositiveNumber = true; //bool flag for sign of the number
     size_t size = 0;
-    size_t allocatedDataSize = 0;
 
     void resize();
     void copyFrom (const BigNumber& other);
@@ -18,6 +17,11 @@ public:
     BigNumber() = default;
     BigNumber(const char* newNum);
     BigNumber(long long int newNum);
+
+    void setNumber (const char* newNum);
+
+    BigNumber (const BigNumber& other);
+    BigNumber& operator= (const BigNumber& other);
 
     bool operator == (const BigNumber& other) const;
     bool operator != (const BigNumber& other) const;
